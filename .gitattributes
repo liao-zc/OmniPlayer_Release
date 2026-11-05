@@ -1,0 +1,2 @@
+*.md text eol=lf filter=fmp-plaintext
+*.ps1 text eol=lf filter=fmp-plaintext
