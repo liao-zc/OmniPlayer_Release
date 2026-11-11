@@ -1,1 +1,35 @@
-<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>OmniPlayer 安装包与更新</title></head><body><h1>OmniPlayer 安装包与更新</h1><p>此处发布 OmniPlayer Android 安装包、版本更新说明和 SHA-256 校验文件。</p><p>请在 <a href="https://github.com/liao-zc/OmniPlayer_Release/releases">Releases</a> 下载适用于设备处理器架构的最新 APK，并阅读对应版本的更新内容。</p><p>发布文件包括 arm64-v8a、armeabi-v7a、x86、x86_64 架构；SHA256SUMS 用于验证下载文件完整性。</p><p>安装前请确认设备允许安装此应用。升级会保留同一应用签名下的用户设置和应用数据。</p></body></html>
+<!doctype html>
+<html lang="zh-CN">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>OmniPlayer 下载、功能与更新</title></head>
+<body>
+<h1>OmniPlayer Android 播放器</h1>
+<p>OmniPlayer 集成磁力播放、电视直播、网络播放及通用设置，三项播放功能相互独立，并共用应用内播放器和基础管理能力。</p>
+<h2>磁力播放</h2>
+<ul>
+<li>搜索磁力资源，支持多个搜索站点、分页、排序、去重、搜索历史和收藏。</li>
+<li>添加和管理下载任务，支持播放、暂停、继续、排序、删除及下载进度与速度查看。</li>
+<li>应用内视频播放器支持进度拖动、快进快退、倍速、音轨与字幕选择、全屏、播放列表和播放点记忆。</li>
+</ul>
+<h2>电视直播</h2>
+<ul>
+<li>导入手机中的 M3U 文件或添加直播源地址，并管理、保存和刷新多个直播源。</li>
+<li>浏览和收藏频道，使用应用内播放器观看并管理观看历史。</li>
+</ul>
+<h2>网络播放</h2>
+<ul>
+<li>预置优酷、爱奇艺、腾讯视频、芒果 TV 和 bilibili 搜索入口。</li>
+<li>查看搜索结果详情和逐集列表，每集与所属网站、剧目和集数对应。</li>
+<li>站点公开提供的媒体地址通过应用内播放器播放；公开集数会检查实际画面和播放进度。</li>
+<li>可管理网站、下载位置、脚本配置和解析源。</li>
+<li>会员、登录及 DRM 限制内容遵循站点权限并显示限制提示，不尝试绕过授权。</li>
+</ul>
+<h2>通用与数据管理</h2>
+<ul>
+<li>提供主题颜色、字体、通用播放设置、更新检查和应用说明。</li>
+<li>磁播与网播提供播放列表、下载任务、收藏和历史记录管理。</li>
+<li>应用数据和下载内容保存在应用专属存储位置；使用相同应用身份升级可保留用户数据。</li>
+</ul>
+<h2>下载与安装</h2>
+<p>在本页的 <a href="https://github.com/liao-zc/OmniPlayer_Release/releases">Releases</a> 获取最新版本、中文更新说明和 SHA-256 校验文件。提供 arm64-v8a、armeabi-v7a、x86 与 x86_64 安装包，请按设备架构选择，并可通过 SHA256SUMS 校验下载完整性。</p>
+<p>已安装旧版时，使用同一签名的新版覆盖安装以保留应用数据。首次安装时请按 Android 系统提示授权安装。</p>
+</body></html>
