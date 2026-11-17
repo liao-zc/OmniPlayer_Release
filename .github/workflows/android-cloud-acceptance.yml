@@ -52,7 +52,9 @@ jobs:
           adb install -r "acceptance-apks/network-${{ matrix.version }}-test.apk" || exit 1
           mkdir -p acceptance-results
           result="acceptance-results/${{ matrix.version }}-${{ matrix.site }}-${{ matrix.query }}.txt"
+          adb logcat -c
           adb shell am instrument -w -r -e class com.omniplayer.NetworkSearchParityAcceptanceTest -e networkSite "${{ matrix.site }}" -e networkQuery "${{ matrix.query }}" com.OmniPlayer.test/androidx.test.runner.AndroidJUnitRunner > "$result" 2>&1
+          adb logcat -d -s NetworkPlaybackEvidence:I NetworkParityRows:I NetworkEpisodeProbe:I NetworkAccessRestriction:I NetworkSearchYouku:I '*:S' >> "$result"
           cat "$result"
           grep -q 'INSTRUMENTATION_CODE: -1' "$result" && grep -q 'OK (' "$result"
           SCRIPT
