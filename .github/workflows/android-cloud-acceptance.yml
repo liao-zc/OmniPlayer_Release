@@ -14,8 +14,10 @@ jobs:
       fail-fast: false
       matrix:
         version: [baseline, current]
+        site: [youku, iqiyi, tencent, mango, bilibili]
+        query: [boy-detective, singer, voice]
     runs-on: ubuntu-latest
-    timeout-minutes: 120
+    timeout-minutes: 30
     env:
       GH_TOKEN: ${{ github.token }}
     steps:
@@ -48,22 +50,11 @@ jobs:
           set -u
           adb install -r "acceptance-apks/network-${{ matrix.version }}-app.apk" || exit 1
           adb install -r "acceptance-apks/network-${{ matrix.version }}-test.apk" || exit 1
-          failures=0
           mkdir -p acceptance-results
-          for site in youku iqiyi tencent mango bilibili; do
-            for query in boy-detective singer voice; do
-              result="acceptance-results/${{ matrix.version }}-$site-$query.txt"
-              adb shell am instrument -w -r -e class com.omniplayer.NetworkSearchParityAcceptanceTest -e networkSite "$site" -e networkQuery "$query" com.OmniPlayer.test/androidx.test.runner.AndroidJUnitRunner > "$result" 2>&1
-              if grep -q 'INSTRUMENTATION_CODE: -1' "$result" && grep -q 'OK (' "$result"; then
-                echo "PASS $site $query"
-              else
-                echo "FAIL $site $query"
-                failures=$((failures + 1))
-              fi
-              adb shell am force-stop com.OmniPlayer || true
-            done
-          done
-          test "$failures" -eq 0
+          result="acceptance-results/${{ matrix.version }}-${{ matrix.site }}-${{ matrix.query }}.txt"
+          adb shell am instrument -w -r -e class com.omniplayer.NetworkSearchParityAcceptanceTest -e networkSite "${{ matrix.site }}" -e networkQuery "${{ matrix.query }}" com.OmniPlayer.test/androidx.test.runner.AndroidJUnitRunner > "$result" 2>&1
+          cat "$result"
+          grep -q 'INSTRUMENTATION_CODE: -1' "$result" && grep -q 'OK (' "$result"
           SCRIPT
       - uses: reactivecircus/android-emulator-runner@v2
         with:
@@ -78,6 +69,6 @@ jobs:
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: network-${{ matrix.version }}-results
+          name: network-${{ matrix.version }}-${{ matrix.site }}-${{ matrix.query }}-result
           path: acceptance-results/
 
