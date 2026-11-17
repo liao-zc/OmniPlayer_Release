@@ -1,0 +1,10 @@
+name: OmniPlayer network playback cloud acceptance
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  android-runner:
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "Android cloud runner available"
