@@ -113,9 +113,9 @@ jobs:
           adb install -r acceptance-apks/network-current-app.apk || exit 1
           adb install -r acceptance-apks/network-current-test.apk || exit 1
           mkdir -p acceptance-results
-          adb shell am instrument -w -r -e class 'com.omniplayer.NetworkPlaybackUiTest#scriptVideoReturnsToTheWaitingNativePlayer,com.omniplayer.NetworkPlaybackUiTest#emptyScriptResultStaysOnTheNativePlayerWithAnAction,com.omniplayer.NetworkPlaybackUiTest#webPlaybackShowsLoadingRetryAndReturnActionsInsteadOfABlankBlackScreen' com.OmniPlayer.test/androidx.test.runner.AndroidJUnitRunner > acceptance-results/native-player-ui.txt 2>&1
+          adb shell am instrument -w -r -e class 'com.omniplayer.NetworkPlaybackUiTest#scriptVideoReturnsToTheWaitingNativePlayer,com.omniplayer.NetworkPlaybackUiTest#emptyScriptResultStaysOnTheNativePlayerWithAnAction,com.omniplayer.NetworkPlaybackUiTest#failedDirectMediaStaysInTheNativePlayerWithRetryAndReturn,com.omniplayer.NetworkPlaybackUiTest#webPlaybackShowsLoadingRetryAndReturnActionsInsteadOfABlankBlackScreen' com.OmniPlayer.test/androidx.test.runner.AndroidJUnitRunner > acceptance-results/native-player-ui.txt 2>&1
           cat acceptance-results/native-player-ui.txt
-          grep -q 'OK (3 tests)' acceptance-results/native-player-ui.txt
+          grep -q 'OK (4 tests)' acceptance-results/native-player-ui.txt
           SCRIPT
       - uses: reactivecircus/android-emulator-runner@v2
         with:
