@@ -47,6 +47,15 @@ jobs:
                   episodes = data.get('epsodelist') or data.get('episodeList') or []
                   print('IQIYI_LIST', aid, 'http=', code, 'code=', payload.get('code'), 'total=', data.get('total'), 'rows=', len(episodes))
                   print('IQIYI_ROWS', json.dumps([{key: row.get(key) for key in ('name', 'shortTitle', 'playUrl', 'tvId')} for row in episodes[:3]], ensure_ascii=False))
+          code, body = fetch('https://mesh.if.iqiyi.com/portal/lw/search/homePage?key=' + urllib.parse.quote('中国好声音精编版'))
+          try: focused = json.loads(body).get('data', {}).get('docinfos') or []
+          except ValueError: focused = []
+          print('IQIYI_FOCUSED', 'http=', code, 'titles=', [(item.get('albumDocInfo') or {}).get('albumTitle') for item in focused[:15]])
+          for document in focused:
+              album = document.get('albumDocInfo') or {}
+              if album.get('albumTitle') != '中国好声音精编版': continue
+              print('IQIYI_FOCUSED_ALBUM', json.dumps({key: album.get(key) for key in ('albumId', 'qipu_id', 'albumLink', 'itemTotalNumber')}, ensure_ascii=False))
+              print('IQIYI_FOCUSED_PREVIEW', json.dumps([{key: row.get(key) for key in ('itemTitle', 'itemNumber', 'itemLink')} for row in (album.get('videoinfos') or [])[:8]], ensure_ascii=False))
 
           page = 'https://v.qq.com/x/cover/x0044ttcb30.html'
           code, body = fetch('https://vv.video.qq.com/getinfo?vids=x0044ttcb30&platform=101001&charge=0&otype=json&defn=shd', page)
