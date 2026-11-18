@@ -86,6 +86,8 @@ jobs:
                   except ValueError: continue
                   print('SHOW_ROOT', show_id, list(root.keys()))
                   print('SHOW_TABS', json.dumps(root.get('pageTabs'), ensure_ascii=False)[:1100])
+                  print('SHOW_TAB_ROUTES', show_id, [{key: tab.get(key) for key in ('title', 'tabCode', 'url')} for tab in (root.get('pageTabs') or [])])
+                  print('SHOW_PAGE_MAP_KEYS', show_id, list((root.get('pageMap') or {}).keys()))
                   modules = root.get('moduleList') or []
                   if isinstance(modules, list):
                       for module in modules[:14]:
