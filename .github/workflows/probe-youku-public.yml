@@ -47,4 +47,29 @@ jobs:
           print('DETAIL', 'http=', code, 'bytes=', len(html), 'initial_data=', '__INITIAL_DATA__' in html)
           for pattern in ('episodeTotal', 'episodeList', 'episode_list', 'showId', 'realShowId', 'stage', 'playlist', 'get_episodes'):
               print('DETAIL_KEY', pattern, html.count(pattern))
+          marker = html.find('__INITIAL_DATA__')
+          start = html.find('{', marker) if marker >= 0 else -1
+          if start >= 0:
+              decoder = json.JSONDecoder()
+              try:
+                  root, _ = decoder.raw_decode(html[start:])
+              except ValueError as error:
+                  print('DETAIL_JSON_ERROR', str(error)[:120])
+              else:
+                  print('DETAIL_ROOT_KEYS', list(root.keys())[:30])
+                  rows = []
+                  def visit(value):
+                      if isinstance(value, list):
+                          for child in value: visit(child)
+                      elif isinstance(value, dict):
+                          if value.get('videoId'):
+                              rows.append({key: value.get(key) for key in ('videoId', 'showId', 'realShowId', 'stage', 'title', 'displayName', 'titleDTO', 'name')})
+                          for child in value.values(): visit(child)
+                  visit(root)
+                  print('DETAIL_VIDEO_ROWS', len(rows))
+                  for row in rows[:12]: print('DETAIL_VIDEO', json.dumps(row, ensure_ascii=False)[:500])
+          for url in ('https://v.youku.com/video?s=dbaf170e26f84d30ba72', 'https://v.youku.com/video?vid=XNjEyMTczODY1Mg=='):
+              code, page = fetch(url)
+              title = re.findall(r'<title[^>]*>(.*?)</title>', page, re.I | re.S)[:1]
+              print('VIDEO_PAGE', url.split('?')[1][:7], 'http=', code, 'title=', title, 'bytes=', len(page))
           PY
