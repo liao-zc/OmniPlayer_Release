@@ -72,4 +72,8 @@ jobs:
               code, page = fetch(url)
               title = re.findall(r'<title[^>]*>(.*?)</title>', page, re.I | re.S)[:1]
               print('VIDEO_PAGE', url.split('?')[1][:7], 'http=', code, 'title=', title, 'bytes=', len(page))
+          for show_id in ('cbfbd720962411de83b1', 'cbfbd81a962411de83b1'):
+              code, page = fetch('https://www.youku.com/show_page/id_' + show_id + '.html')
+              print('SHOW_PAGE', show_id, 'http=', code, 'bytes=', len(page), 'video_id_count=', page.count('videoId'), 'initial_data=', '__INITIAL_DATA__' in page)
+              print('SHOW_EPISODE_MARKERS', len(re.findall(r'少年包青天[^"<]{0,30}(?:集|01|02|03)', page)))
           PY
