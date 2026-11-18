@@ -31,6 +31,12 @@ jobs:
               observed.add(id);
               console.log('REQUEST', response.status(), id);
               const type = response.headers()['content-type'] || '';
+              if (url.hostname === 'pl-ali.youku.com' && url.pathname === '/playlist/m3u8') {
+                try {
+                  const body = await response.text();
+                  console.log('MANIFEST_SHAPE', 'm3u=' + body.startsWith('#EXTM3U'), 'key=' + body.includes('#EXT-X-KEY'), 'sessionKey=' + body.includes('#EXT-X-SESSION-KEY'), 'bytes=' + body.length);
+                } catch (_) {}
+              }
               if (!type.includes('json')) return;
               try {
                 const body = await response.text();
