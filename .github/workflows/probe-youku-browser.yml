@@ -72,5 +72,18 @@ jobs:
                   'code=' + payload.code, 'contents=' + (payload.data?.contents?.length || 0));
               } catch (error) { console.log('MANGO_SEARCH', phrase, error.name, error.message.slice(0, 150)); }
             }
+            const {chromium} = require('playwright');
+            const browser = await chromium.launch({headless: true});
+            for (const phrase of ['中国好声音', '少年包青天']) {
+              const page = await browser.newPage({userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/124.0.0.0 Safari/537.36'});
+              try {
+                const response = await page.goto(`https://so.mgtv.com/so?k=${encodeURIComponent(phrase)}`, {waitUntil: 'domcontentloaded', timeout: 30000});
+                await page.waitForTimeout(12000);
+                console.log('MANGO_PAGE', phrase, 'http=' + response?.status(), 'title=' + await page.title(),
+                  'cards=' + await page.locator('.m-search-video').count(), 'links=' + await page.locator('a[href*="mgtv.com/b/"]').count());
+              } catch (error) { console.log('MANGO_PAGE', phrase, error.name, error.message.slice(0, 150)); }
+              await page.close();
+            }
+            await browser.close();
           })().catch(error => { console.error(error); process.exitCode = 1; });
           JS
