@@ -8,7 +8,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, windows-latest, macos-latest]
+        os: [ubuntu-latest]
     runs-on: ${{ matrix.os }}
     timeout-minutes: 5
     steps:
@@ -54,6 +54,21 @@ jobs:
               pages = data.get('pages') or []
               cid = pages[0].get('cid') if pages else None
               print(f'{bvid} page_http={page_status} view_http={view_status} view_code={view.get("code")} page_count={len(pages)} cid_present={bool(cid)}')
+              for label, alternate in (
+                  ('detail', 'https://api.bilibili.com/x/web-interface/view/detail?bvid=' + urllib.parse.quote(bvid)),
+                  ('pagelist', 'https://api.bilibili.com/x/player/pagelist?bvid=' + urllib.parse.quote(bvid)),
+                  ('appview', 'https://app.bilibili.com/x/v2/view?bvid=' + urllib.parse.quote(bvid) + '&mobi_app=android&build=1002000&platform=android'),
+              ):
+                  alternate_status, alternate_bytes = fetch(alternate, page)
+                  try:
+                      alternate_data = json.loads(alternate_bytes)
+                  except ValueError:
+                      alternate_data = {}
+                  body = alternate_data.get('data') or {}
+                  alternate_pages = body if isinstance(body, list) else body.get('pages') or []
+                  alternate_cid = alternate_pages[0].get('cid') if alternate_pages else None
+                  cid = cid or alternate_cid
+                  print(f'{bvid} {label}_http={alternate_status} code={alternate_data.get("code")} cid_present={bool(alternate_cid)}')
               if cid:
                   query = urllib.parse.urlencode({'bvid': bvid, 'cid': cid, 'qn': 16, 'fnval': 0, 'fnver': 0, 'fourk': 0, 'platform': 'html5'})
                   play_status, play_bytes = fetch('https://api.bilibili.com/x/player/playurl?' + query, page)
