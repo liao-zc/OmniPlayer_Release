@@ -76,4 +76,7 @@ jobs:
               code, page = fetch('https://www.youku.com/show_page/id_' + show_id + '.html')
               print('SHOW_PAGE', show_id, 'http=', code, 'bytes=', len(page), 'video_id_count=', page.count('videoId'), 'initial_data=', '__INITIAL_DATA__' in page)
               print('SHOW_EPISODE_MARKERS', len(re.findall(r'少年包青天[^"<]{0,30}(?:集|01|02|03)', page)))
+              print('SHOW_SCRIPTS', re.findall(r'<script[^>]+src=["\']([^"\']+)', page)[:8])
+              code, page = fetch('https://v.youku.com/video?s=' + show_id)
+              print('VIDEO_SHOW', show_id, 'http=', code, 'bytes=', len(page), 'video_id_count=', page.count('videoId'), 'initial_data=', '__INITIAL_DATA__' in page)
           PY
