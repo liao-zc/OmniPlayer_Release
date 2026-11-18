@@ -22,7 +22,7 @@ on:
         type: choice
         options: [boy-detective, singer, voice]
 permissions:
-  contents: read
+  contents: write
 jobs:
   playback:
     runs-on: ubuntu-latest
