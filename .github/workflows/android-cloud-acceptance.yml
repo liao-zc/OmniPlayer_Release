@@ -6,10 +6,16 @@ on:
         description: Draft release containing the four acceptance APKs
         required: true
         type: string
+      run_network:
+        description: Run the five-provider playback matrix after UI acceptance
+        required: true
+        default: true
+        type: boolean
 permissions:
   contents: write
 jobs:
   playback:
+    if: ${{ inputs.run_network }}
     strategy:
       fail-fast: false
       matrix:
@@ -72,5 +78,58 @@ jobs:
         if: always()
         with:
           name: network-${{ matrix.version }}-${{ matrix.site }}-${{ matrix.query }}-result
+          path: acceptance-results/
+  native-player-ui:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: android-actions/setup-android@v3
+        with:
+          packages: platform-tools
+      - name: Install Android API 35 platform
+        run: sdkmanager "platforms;android-35" "build-tools;35.0.0"
+      - name: Download current acceptance APKs
+        env:
+          ARTIFACT_TAG: ${{ inputs.artifact_tag }}
+        run: |
+          mkdir -p acceptance-apks
+          gh release download "$ARTIFACT_TAG" --repo "$GITHUB_REPOSITORY" --pattern 'network-current-*.apk' --dir acceptance-apks
+      - name: Enable KVM
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+      - name: Write native player UI script
+        run: |
+          cat > ui-run.sh <<'SCRIPT'
+          #!/usr/bin/env bash
+          set -u
+          adb install -r acceptance-apks/network-current-app.apk || exit 1
+          adb install -r acceptance-apks/network-current-test.apk || exit 1
+          mkdir -p acceptance-results
+          adb shell am instrument -w -r -e class 'com.omniplayer.NetworkPlaybackUiTest#scriptVideoReturnsToTheWaitingNativePlayer,com.omniplayer.NetworkPlaybackUiTest#emptyScriptResultStaysOnTheNativePlayerWithAnAction,com.omniplayer.NetworkPlaybackUiTest#webPlaybackShowsLoadingRetryAndReturnActionsInsteadOfABlankBlackScreen' com.OmniPlayer.test/androidx.test.runner.AndroidJUnitRunner > acceptance-results/native-player-ui.txt 2>&1
+          cat acceptance-results/native-player-ui.txt
+          grep -q 'OK (3 tests)' acceptance-results/native-player-ui.txt
+          SCRIPT
+      - uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 35
+          target: default
+          arch: x86_64
+          profile: pixel_2
+          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -no-snapshot
+          emulator-boot-timeout: 600
+          disable-animations: true
+          script: bash ui-run.sh
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: native-player-ui-result
           path: acceptance-results/
 
