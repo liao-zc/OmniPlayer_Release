@@ -1,0 +1,59 @@
+name: Diagnose public Bilibili media
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Check selected public BV and playurl responses
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import json
+          import urllib.error
+          import urllib.parse
+          import urllib.request
+
+          agent = 'Mozilla/5.0 (Linux; Android 14) AppleWebKit/537.36 Chrome/124.0 Mobile Safari/537.36'
+          videos = ('BV1xh411o77t', 'BV1aS411A7DN', 'BV1cwhv6mEe2')
+
+          def fetch(url, referer):
+              request = urllib.request.Request(url, headers={
+                  'User-Agent': agent,
+                  'Accept-Language': 'zh-CN,zh;q=0.9',
+                  'Referer': referer,
+              })
+              try:
+                  with urllib.request.urlopen(request, timeout=20) as response:
+                      return response.status, response.read(2_000_000)
+              except urllib.error.HTTPError as error:
+                  return error.code, error.read(2_000_000)
+              except Exception as error:
+                  return type(error).__name__, b''
+
+          for bvid in videos:
+              page = f'https://www.bilibili.com/video/{bvid}'
+              page_status, _ = fetch(page, page)
+              view_url = 'https://api.bilibili.com/x/web-interface/view?bvid=' + urllib.parse.quote(bvid)
+              view_status, view_bytes = fetch(view_url, page)
+              try:
+                  view = json.loads(view_bytes)
+              except ValueError:
+                  view = {}
+              data = view.get('data') or {}
+              pages = data.get('pages') or []
+              cid = pages[0].get('cid') if pages else None
+              print(f'{bvid} page_http={page_status} view_http={view_status} view_code={view.get("code")} page_count={len(pages)} cid_present={bool(cid)}')
+              if cid:
+                  query = urllib.parse.urlencode({'bvid': bvid, 'cid': cid, 'qn': 16, 'fnval': 0, 'fnver': 0, 'fourk': 0, 'platform': 'html5'})
+                  play_status, play_bytes = fetch('https://api.bilibili.com/x/player/playurl?' + query, page)
+                  try:
+                      play = json.loads(play_bytes)
+                  except ValueError:
+                      play = {}
+                  rows = (play.get('data') or {}).get('durl') or []
+                  print(f'{bvid} play_http={play_status} play_code={play.get("code")} durl_count={len(rows)}')
+          PY
