@@ -81,8 +81,9 @@ jobs:
                 await page.waitForTimeout(12000);
                 console.log('MANGO_PAGE', phrase, 'http=' + response?.status(), 'title=' + await page.title(),
                   'cards=' + await page.locator('.m-search-video').count(), 'links=' + await page.locator('a[href*="mgtv.com/b/"]').count());
-                console.log('MANGO_CARD_LINKS', JSON.stringify(await page.locator('.m-search-video a[href]').evaluateAll(links =>
-                  links.slice(0, 12).map(link => ({title: (link.innerText || link.getAttribute('title') || '').trim(), href: link.href}))));
+                const cardLinks = await page.locator('.m-search-video a[href]').evaluateAll(links =>
+                  links.slice(0, 12).map(link => ({title: (link.innerText || link.getAttribute('title') || '').trim(), href: link.href})));
+                console.log('MANGO_CARD_LINKS', JSON.stringify(cardLinks));
               } catch (error) { console.log('MANGO_PAGE', phrase, error.name, error.message.slice(0, 150)); }
               await page.close();
             }
