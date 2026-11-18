@@ -1,0 +1,49 @@
+name: Inspect Youku public episode browser requests
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm install --no-save playwright
+      - run: npx playwright install chromium --with-deps
+      - name: Observe anonymous show page
+        shell: bash
+        run: |
+          node - <<'JS'
+          const { chromium } = require('playwright');
+          (async () => {
+            const browser = await chromium.launch({headless: true});
+            const page = await browser.newPage({userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/124.0.0.0 Safari/537.36'});
+            const observed = new Set();
+            page.on('response', async response => {
+              let url;
+              try { url = new URL(response.url()); } catch (_) { return; }
+              if (!url.hostname.endsWith('youku.com') || !/episode|playlist|show|module|component|detail/i.test(url.pathname)) return;
+              const id = url.hostname + url.pathname + '?' + [...url.searchParams.keys()].join(',');
+              if (observed.has(id)) return;
+              observed.add(id);
+              console.log('REQUEST', response.status(), id);
+              const type = response.headers()['content-type'] || '';
+              if (!type.includes('json')) return;
+              try {
+                const body = await response.text();
+                console.log('RESPONSE_SHAPE', id, 'bytes=' + body.length, 'videoIds=' + (body.match(/videoId/g) || []).length, 'episodeWords=' + (body.match(/episode/g) || []).length);
+              } catch (_) {}
+            });
+            const target = 'https://www.youku.com/show_page/id_cbfbd720962411de83b1.html';
+            try { await page.goto(target, {waitUntil: 'domcontentloaded', timeout: 45000}); }
+            catch (error) { console.log('PAGE_ERROR', error.message.slice(0, 160)); }
+            await page.waitForTimeout(25000);
+            console.log('PAGE_TITLE', await page.title());
+            console.log('EPISODE_LINKS', await page.locator('a[href*="v_show"]').count());
+            console.log('VISIBLE_EPISODE_TEXT', (await page.locator('a[href*="v_show"]').allTextContents()).slice(0, 18));
+            await browser.close();
+          })().catch(error => { console.error(error); process.exitCode = 1; });
+          JS
