@@ -90,4 +90,7 @@ jobs:
                   if isinstance(modules, list):
                       for module in modules[:14]:
                           print('SHOW_MODULE', show_id, json.dumps({key: module.get(key) for key in ('id', 'name', 'type', 'moduleType', 'title', 'moduleName')}, ensure_ascii=False)[:450], list(module.keys())[:20])
+                          for component in (module.get('components') or [])[:15]:
+                              if isinstance(component, dict):
+                                  print('SHOW_COMPONENT', show_id, json.dumps({key: component.get(key) for key in ('type', 'typeName', 'componentType', 'title', 'name', 'total', 'totalCount', 'hasMore', 'pageNo', 'pageSize')}, ensure_ascii=False)[:450], list(component.keys())[:22])
           PY
