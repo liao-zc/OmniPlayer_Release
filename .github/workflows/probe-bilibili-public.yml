@@ -55,5 +55,8 @@ jobs:
                   except ValueError:
                       play = {}
                   rows = (play.get('data') or {}).get('durl') or []
-                  print(f'{bvid} play_http={play_status} play_code={play.get("code")} durl_count={len(rows)}')
+                  media_path = urllib.parse.urlparse(rows[0].get('url', '')).path if rows else ''
+                  suffix = media_path.rsplit('.', 1)[-1] if '.' in media_path else '<none>'
+                  backups = len(rows[0].get('backup_url') or []) if rows else 0
+                  print(f'{bvid} play_http={play_status} play_code={play.get("code")} durl_count={len(rows)} suffix={suffix} backups={backups}')
           PY
