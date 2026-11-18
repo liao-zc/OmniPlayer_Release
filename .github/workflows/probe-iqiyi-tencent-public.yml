@@ -31,7 +31,8 @@ jobs:
           print('IQIYI_SEARCH_HTTP', code)
           try: docs = json.loads(body).get('data', {}).get('docinfos') or []
           except ValueError: docs = []
-          for document in docs[:30]:
+          print('IQIYI_DOC_COUNT', len(docs), 'titles=', [(document.get('albumDocInfo') or {}).get('albumTitle') for document in docs[:20]])
+          for document in docs:
               album = document.get('albumDocInfo') or {}
               if '中国好声音精编版' not in album.get('albumTitle', ''): continue
               print('IQIYI_ALBUM', json.dumps({key: album.get(key) for key in ('albumId', 'qipu_id', 'albumTitle', 'albumLink', 'itemTotalNumber')}, ensure_ascii=False))
@@ -53,5 +54,7 @@ jobs:
           except ValueError: payload = {}
           video = ((payload.get('vl') or {}).get('vi') or [{}])[0]
           print('TENCENT_PLAY', 'http=', code, 'code=', payload.get('code'), 'em=', payload.get('em'), 'video_keys=', list(video.keys()), 'filename_present=', bool(video.get('fn')), 'key_present=', bool(video.get('fvkey')))
+          bases = ((video.get('ul') or {}).get('ui') or [])
+          print('TENCENT_MEDIA_SHAPE', 'filename_suffix=', str(video.get('fn', '')).split('?')[0].rsplit('.', 1)[-1], 'base_schemes=', [urllib.parse.urlparse(item.get('url', '')).scheme for item in bases[:4]], 'base_hosts=', [urllib.parse.urlparse(item.get('url', '')).hostname for item in bases[:4]], 'drm=', bool(video.get('drm')), 'encryption=', bool(video.get('encryption')), 'preview=', video.get('isprevid'))
           print('TENCENT_INFO', 'msg=', str(payload.get('msg', ''))[:140])
           PY
