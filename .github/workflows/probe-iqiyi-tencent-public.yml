@@ -64,6 +64,23 @@ jobs:
           video = ((payload.get('vl') or {}).get('vi') or [{}])[0]
           print('TENCENT_PLAY', 'http=', code, 'code=', payload.get('code'), 'em=', payload.get('em'), 'video_keys=', list(video.keys()), 'filename_present=', bool(video.get('fn')), 'key_present=', bool(video.get('fvkey')))
           bases = ((video.get('ul') or {}).get('ui') or [])
-          print('TENCENT_MEDIA_SHAPE', 'filename_suffix=', str(video.get('fn', '')).split('?')[0].rsplit('.', 1)[-1], 'base_schemes=', [urllib.parse.urlparse(item.get('url', '')).scheme for item in bases[:4]], 'base_hosts=', [urllib.parse.urlparse(item.get('url', '')).hostname for item in bases[:4]], 'drm=', bool(video.get('drm')), 'encryption=', bool(video.get('encryption')), 'preview=', video.get('isprevid'))
+          print('TENCENT_MEDIA_SHAPE', 'filename_suffix=', str(video.get('fn', '')).split('?')[0].rsplit('.', 1)[-1], 'base_schemes=', [urllib.parse.urlparse(item.get('url', '')).scheme for item in bases[:4]], 'base_hosts=', [urllib.parse.urlparse(item.get('url', '')).hostname for item in bases[:4]], 'base_queries=', [bool(urllib.parse.urlparse(item.get('url', '')).query) for item in bases[:4]], 'drm=', bool(video.get('drm')), 'encryption=', bool(video.get('encryption')), 'preview=', video.get('isprevid'))
+          for field in ('drm', 'encryption', 'isprevid'):
+              value = video.get(field)
+              print('TENCENT_FLAG', field, 'type=', type(value).__name__, 'value=', list(value.keys()) if isinstance(value, dict) else str(value)[:100])
+          filename, key = video.get('fn', ''), video.get('fvkey', '')
+          if filename and key:
+              for index, item in enumerate(bases[:4]):
+                  base = item.get('url', '').rstrip('/')
+                  if not base: continue
+                  for scheme in ('https',):
+                      parsed = urllib.parse.urlsplit(base)
+                      target = urllib.parse.urlunsplit((scheme, parsed.netloc, parsed.path.rstrip('/') + '/' + filename, parsed.query + ('&' if parsed.query else '') + 'vkey=' + urllib.parse.quote(key), ''))
+                      request = urllib.request.Request(target, headers={'User-Agent': agent, 'Referer': page, 'Range': 'bytes=0-1'})
+                      try:
+                          with urllib.request.urlopen(request, timeout=8) as response:
+                              print('TENCENT_CDN', index, scheme, 'status=', response.status, 'type=', response.headers.get('Content-Type'), 'bytes=', len(response.read(4096)))
+                      except Exception as error:
+                          print('TENCENT_CDN', index, scheme, 'error=', type(error).__name__, 'status=', getattr(error, 'code', ''))
           print('TENCENT_INFO', 'msg=', str(payload.get('msg', ''))[:140])
           PY
