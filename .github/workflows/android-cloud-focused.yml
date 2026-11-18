@@ -74,12 +74,11 @@ jobs:
             adb install -r "acceptance-apks/network-$VERSION-app.apk" || exit 1
             adb install -r "acceptance-apks/network-$VERSION-test.apk" || exit 1
             mkdir -p acceptance-results
-            result="acceptance-results/$VERSION-$SITE-$QUERY.txt"
             adb logcat -c
-            adb shell am instrument -w -r -e class com.omniplayer.NetworkSearchParityAcceptanceTest -e networkSite "$SITE" -e networkQuery "$QUERY" com.OmniPlayer.test/androidx.test.runner.AndroidJUnitRunner > "$result" 2>&1
-            adb logcat -d -s NetworkWebPlayer:I NetworkPlaybackEvidence:I NetworkParityRows:I NetworkEpisodeProbe:I NetworkAccessRestriction:I NetworkSearchYouku:I '*:S' >> "$result"
-            cat "$result"
-            grep -q 'OK (1 test)' "$result"
+            adb shell am instrument -w -r -e class com.omniplayer.NetworkSearchParityAcceptanceTest -e networkSite "$SITE" -e networkQuery "$QUERY" com.OmniPlayer.test/androidx.test.runner.AndroidJUnitRunner > "acceptance-results/$VERSION-$SITE-$QUERY.txt" 2>&1
+            adb logcat -d -s NetworkWebPlayer:I NetworkPlaybackEvidence:I NetworkParityRows:I NetworkEpisodeProbe:I NetworkAccessRestriction:I NetworkSearchYouku:I '*:S' >> "acceptance-results/$VERSION-$SITE-$QUERY.txt"
+            cat "acceptance-results/$VERSION-$SITE-$QUERY.txt"
+            grep -q 'OK (1 test)' "acceptance-results/$VERSION-$SITE-$QUERY.txt"
       - uses: actions/upload-artifact@v4
         if: always()
         with:
