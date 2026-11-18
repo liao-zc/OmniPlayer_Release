@@ -113,9 +113,15 @@ jobs:
           adb install -r acceptance-apks/network-current-app.apk || exit 1
           adb install -r acceptance-apks/network-current-test.apk || exit 1
           mkdir -p acceptance-results
-          adb shell am instrument -w -r -e class 'com.omniplayer.NetworkPlaybackUiTest#scriptVideoReturnsToTheWaitingNativePlayer,com.omniplayer.NetworkPlaybackUiTest#emptyScriptResultStaysOnTheNativePlayerWithAnAction,com.omniplayer.NetworkPlaybackUiTest#failedDirectMediaStaysInTheNativePlayerWithRetryAndReturn,com.omniplayer.NetworkPlaybackUiTest#webPlaybackShowsLoadingRetryAndReturnActionsInsteadOfABlankBlackScreen' com.OmniPlayer.test/androidx.test.runner.AndroidJUnitRunner > acceptance-results/native-player-ui.txt 2>&1
-          cat acceptance-results/native-player-ui.txt
-          grep -q 'OK (4 tests)' acceptance-results/native-player-ui.txt
+          failures=0
+          for test in scriptVideoReturnsToTheWaitingNativePlayer emptyScriptResultStaysOnTheNativePlayerWithAnAction failedDirectMediaStaysInTheNativePlayerWithRetryAndReturn webPlaybackShowsLoadingRetryAndReturnActionsInsteadOfABlankBlackScreen; do
+            adb shell am force-stop com.OmniPlayer
+            result="acceptance-results/$test.txt"
+            adb shell am instrument -w -r -e class "com.omniplayer.NetworkPlaybackUiTest#$test" com.OmniPlayer.test/androidx.test.runner.AndroidJUnitRunner > "$result" 2>&1
+            cat "$result"
+            if grep -q 'OK (1 test)' "$result"; then echo "PASS $test"; else echo "FAIL $test"; failures=$((failures + 1)); fi
+          done
+          test "$failures" -eq 0
           SCRIPT
       - uses: reactivecircus/android-emulator-runner@v2
         with:
