@@ -79,4 +79,15 @@ jobs:
               print('SHOW_SCRIPTS', re.findall(r'<script[^>]+src=["\']([^"\']+)', page)[:8])
               code, page = fetch('https://v.youku.com/video?s=' + show_id)
               print('VIDEO_SHOW', show_id, 'http=', code, 'bytes=', len(page), 'video_id_count=', page.count('videoId'), 'initial_data=', '__INITIAL_DATA__' in page)
+              marker = page.find('__INITIAL_DATA__')
+              start = page.find('{', marker) if marker >= 0 else -1
+              if start >= 0:
+                  try: root, _ = json.JSONDecoder().raw_decode(page[start:])
+                  except ValueError: continue
+                  print('SHOW_ROOT', show_id, list(root.keys()))
+                  print('SHOW_TABS', json.dumps(root.get('pageTabs'), ensure_ascii=False)[:1100])
+                  modules = root.get('moduleList') or []
+                  if isinstance(modules, list):
+                      for module in modules[:14]:
+                          print('SHOW_MODULE', show_id, json.dumps({key: module.get(key) for key in ('id', 'name', 'type', 'moduleType', 'title', 'moduleName')}, ensure_ascii=False)[:450], list(module.keys())[:20])
           PY
