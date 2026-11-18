@@ -5,13 +5,20 @@ permissions:
   contents: read
 jobs:
   probe:
-    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
     timeout-minutes: 5
     steps:
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
       - name: Check selected public BV and playurl responses
         shell: bash
         run: |
-          python3 - <<'PY'
+          python - <<'PY'
           import json
           import urllib.error
           import urllib.parse
