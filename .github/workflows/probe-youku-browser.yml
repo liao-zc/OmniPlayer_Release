@@ -53,3 +53,24 @@ jobs:
             await browser.close();
           })().catch(error => { console.error(error); process.exitCode = 1; });
           JS
+      - name: Observe Mango anonymous search
+        shell: bash
+        run: |
+          node - <<'JS'
+          (async () => {
+            for (const phrase of ['少年包青天', '我是歌手', '中国好声音']) {
+              const query = encodeURIComponent(phrase);
+              const url = `https://mobileso.bz.mgtv.com/pc/search/v1?q=${query}&pn=1&pc=10&uid=&corr=0`;
+              try {
+                const response = await fetch(url, {headers: {
+                  'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/124.0.0.0 Safari/537.36',
+                  'Referer': `https://so.mgtv.com/so?k=${query}`,
+                  'Accept-Language': 'zh-CN,zh;q=0.9',
+                }, signal: AbortSignal.timeout(20000)});
+                const payload = await response.json();
+                console.log('MANGO_SEARCH', phrase, 'http=' + response.status,
+                  'code=' + payload.code, 'contents=' + (payload.data?.contents?.length || 0));
+              } catch (error) { console.log('MANGO_SEARCH', phrase, error.name, error.message.slice(0, 150)); }
+            }
+          })().catch(error => { console.error(error); process.exitCode = 1; });
+          JS
